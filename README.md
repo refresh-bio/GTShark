@@ -148,7 +148,7 @@ To compress new sample (`toy_new_sample.vcf`) in reference to the existing compr
 
 To decompress a sample compressed in reference to database `toy_archive` and stored in archive `toy_new_sample_comp` to a VCF file `toy_new_decomp.vcf`:
 ```sh
-../gtshark decompress-sample toy_archive toy_new_comp toy_new_decomp.vcf
+../gtshark decompress-sample toy_archive toy_new_sample_comp toy_new_sample_decomp.vcf
 ```
 
 For more options see Usage section.
