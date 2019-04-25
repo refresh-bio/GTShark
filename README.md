@@ -116,6 +116,42 @@ Options:
   -b - output BCF file (VCF file by default)
   -c [0-9]   set level of compression of the output bcf (number from 0 to 9; 1 by default; 0 means no compression)	
  ```
+ 
+ 
+Toy example
+--------------
+
+There are two example VCF files, `toy_collection.vcf` and `toy_new_sample.vcf`, in the `toy_ex` folder, which can be used to test GTShark. All instructions should be called within `toy_ex` folder.
+
+To compress the example VCF file `toy_collection.vcf` with a collection of samples (6 samples, 11 variant sites including one with two alternating alleles) and store the archive called `toy_archive` in the `toy_ex` folder:
+```sh
+../gtshark compress-db toy_collection.vcf toy_archive
+```
+This will create an archive consisting of two files
+* `toy_archive_db` - file with description of samples and variants,
+* `toy_archive_gt` - main archive with all genotypes compressed.
+
+To decompress the compressed archive `toy_archive` to a VCF file `toy_coll_decomp.vcf`:
+```sh
+../gtshark  decompress-db toy_archive toy_coll_decomp.vcf
+```
+
+To extract a single sample (`s2`) from the compressed archive `toy_archive` to a VCF file `extracted_sample.vcf`:
+```sh
+../gtshark extract-sample toy_archive s2 extracted_sample.vcf
+```
+
+To compress new sample (`toy_new_sample.vcf`) in reference to the existing compressed database/archive `toy_archive` and store it in archive `toy_new_sample_comp`:
+```sh
+../gtshark compress-sample toy_archive toy_new_sample.vcf toy_new_sample_comp
+```
+
+To decompress a sample compressed in reference to database `toy_archive` and stored in archive `toy_new_sample_comp` to a VCF file `toy_new_decomp.vcf`:
+```sh
+../gtshark decompress-sample toy_archive toy_new_comp toy_new_decomp.vcf
+```
+
+For more options see Usage section.
 
 Developers
 --------------
