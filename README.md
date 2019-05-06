@@ -99,6 +99,7 @@ Parameters:
   compressed_sample - path to output compressed file containing a single sample
 Options:
   -sh               - store header of compressed_sample file
+  -ev               - allow differnt variant sets in sample file and database
  ```
 
 
