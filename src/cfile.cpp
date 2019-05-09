@@ -3,8 +3,8 @@
 // The homepage of the GTShark project is https://github.com/refresh-bio/GTShark
 //
 // Author : Sebastian Deorowicz and Agnieszka Danek
-// Version: 1.0
-// Date   : 2018-12-10
+// Version: 1.1
+// Date   : 2019-05-09
 // *******************************************************************************************
 
 #include <memory>
@@ -82,7 +82,6 @@ bool CCompressedFile::load_descriptions()
 		CLZMAWrapper::Decompress(get<1>(d), get<0>(d));
 
 		get<2>(d) = 0;
-//		cout << get<3>(d) << " size: " << get<1>(d).size() << endl;
 	}
 	
 	v_meta.clear();
@@ -309,14 +308,12 @@ bool CCompressedFile::GetSamples(vector<string> &_v_samples)
 }
 
 // ************************************************************************************
-// Zrwaca ploidy
 int CCompressedFile::GetPloidy()
 {
 	return ploidy;
 }
 
 // ************************************************************************************
-// Ustawia ploidy
 void CCompressedFile::SetPloidy(int _ploidy)
 {
 	ploidy = (uint8_t) _ploidy;
@@ -348,6 +345,8 @@ bool CCompressedFile::Eof()
 // ************************************************************************************
 bool CCompressedFile::GetVariant(variant_desc_t &desc, vector<uint8_t> &data)
 {
+	desc.chrom.clear();
+
 	if (i_variant >= no_variants)
 		return false;
 
@@ -490,6 +489,8 @@ bool CCompressedFile::GetVariantGenotypesRaw(vector<pair<uint8_t, uint32_t>> &rl
 // ************************************************************************************
 bool CCompressedFile::GetVariantGenotypesRawAndDesc(variant_desc_t &desc, vector<pair<uint8_t, uint32_t>> &rle_genotypes)
 {
+	desc.chrom.clear();
+
 	if (i_variant >= no_variants)
 		return false;
 

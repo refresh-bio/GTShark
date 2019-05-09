@@ -3,8 +3,8 @@
 // The homepage of the GTShark project is https://github.com/refresh-bio/GTShark
 //
 // Author : Sebastian Deorowicz and Agnieszka Danek
-// Version: 1.0
-// Date   : 2018-12-10
+// Version: 1.1
+// Date   : 2019-05-09
 // *******************************************************************************************
 
 #include <iostream>
@@ -88,6 +88,7 @@ void usage_compress_sample()
 	cerr << "  compressed_sample - path to output compressed file containing a single sample\n";
 	cerr << "Options:\n";
 	cerr << "  -sh               - store header of compressed_sample file\n";
+	cerr << "  -ev               - allow differnt variant sets in sample file and database\n";
 }
 
 // ******************************************************************************
@@ -226,7 +227,12 @@ bool parse_params(int argc, char **argv)
 				params.store_sample_header = true;
 				++i;
 			}
-            else
+			else if (string(argv[i]) == "-ev")
+			{
+				params.extra_variants = true;
+				++i;
+			}
+			else
             {
                 cerr << "Unknown option : " << argv[i] << endl;
                 usage_compress_sample();
@@ -385,7 +391,6 @@ int main(int argc, char **argv)
 	std::cout << "Processing time: " << time_span.count() << " seconds.\n";
 
 	fflush(stdout);
-//	getchar();
 
 	return 0;
 }

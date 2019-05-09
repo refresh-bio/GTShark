@@ -4,8 +4,8 @@
 // The homepage of the GTShark project is https://github.com/refresh-bio/GTShark
 //
 // Author : Sebastian Deorowicz and Agnieszka Danek
-// Version: 1.0
-// Date   : 2018-12-10
+// Version: 1.1
+// Date   : 2019-05-09
 // *******************************************************************************************
 
 #include <mmintrin.h>
@@ -17,9 +17,6 @@
 #include "defs.h"
 #include "rc.h"
 #include "io.h"
-
-//typedef CRangeCoderModel<CVectorIOStream> rcmodel_t;
-//typedef CRangeCoderModelFixedSize<CVectorIOStream> rcmodel_t;
 
 template<typename MODEL> class CContextHM {
 public:

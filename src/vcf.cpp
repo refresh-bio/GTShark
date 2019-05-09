@@ -3,8 +3,8 @@
 // The homepage of the GTShark project is https://github.com/refresh-bio/GTShark
 //
 // Author : Sebastian Deorowicz and Agnieszka Danek
-// Version: 1.0
-// Date   : 2018-12-10
+// Version: 1.1
+// Date   : 2019-05-09
 // *******************************************************************************************
 
 #include "vcf.h"
@@ -71,18 +71,20 @@ bool CVCF::Close()
             return false;
         vcf_file = nullptr;
     }
-    if(vcf_hdr)
+    
+	if(vcf_hdr)
     {
         bcf_hdr_destroy(vcf_hdr);
         vcf_hdr = nullptr;
     }
+
     if(rec)
     {
         bcf_clear(rec);
         rec = nullptr;
     }
-    return true;
-    
+
+    return true;    
 }
 
 // ************************************************************************************
@@ -102,6 +104,7 @@ bool CVCF::GetSamplesList(vector<string> &s_list)
     int n = GetNoSamples();
     for (int i = 0; i < n; i++)
         s_list.push_back(vcf_hdr->samples[i]);
+
     return true;
 }
 
@@ -209,8 +212,11 @@ bool CVCF::WriteHeader()
 // ************************************************************************************
 bool CVCF::GetVariant(variant_desc_t &desc, vector<uint8_t> &data)
 {
-    if(!vcf_file || !vcf_hdr)
-        return false;
+	desc.chrom.clear();
+
+	if (!vcf_file || !vcf_hdr)
+		return false;
+
     if(curr_alt_number == 1) // read new line/record
     {
         bcf_clear(rec);

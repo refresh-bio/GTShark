@@ -4,8 +4,8 @@
 // The homepage of the GTShark project is https://github.com/refresh-bio/GTShark
 //
 // Author : Sebastian Deorowicz and Agnieszka Danek
-// Version: 1.0
-// Date   : 2018-12-10
+// Version: 1.1
+// Date   : 2019-05-09
 // *******************************************************************************************
 
 #include "params.h"
@@ -16,7 +16,7 @@
 
 using namespace std;
 
-typedef struct {
+typedef struct variant_desc_tag {
 	string chrom;
 	int64_t pos;
 	string id;
@@ -25,6 +25,44 @@ typedef struct {
 	string qual;
 	string filter;
 	string info;
+
+	bool operator==(const struct variant_desc_tag &x)
+	{
+		if (chrom == "" && x.chrom == "")
+			return true;
+
+		return chrom == x.chrom &&
+			pos == x.pos;
+//		&&
+//			id == x.id;
+//		&&
+//			ref == x.ref &&
+//			alt == x.alt &&
+//			qual == x.qual &&
+//			filter == x.filter;
+//			info == x.info;
+	}
+
+	bool operator !=(const struct variant_desc_tag &x)
+	{
+		return !operator==(x);
+	}
+
+	bool operator<(const struct variant_desc_tag &x)
+	{
+		if (chrom != x.chrom)
+		{
+			if (chrom.empty())
+				return false;
+			if (x.chrom.empty())
+				return true;
+
+			return chrom < x.chrom;
+		}
+		if (pos != x.pos)
+			return pos < x.pos;
+		return alt < x.alt;
+	}
 } variant_desc_t;
 
 class CVCF
@@ -69,7 +107,7 @@ public:
 	//bool SetHeader(vector<string> &v_header);
 
 	// Jeśli plik jest otwarty do odczytu, to zwraca informację czy doszliśmy do końca
-	//bool Eof();
+//	bool Eof();
 
 	// Get complete header as a string
 	bool GetHeader(string &v_header);

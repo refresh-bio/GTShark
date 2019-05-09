@@ -3,8 +3,8 @@
 // The homepage of the GTShark project is https://github.com/refresh-bio/GTShark
 //
 // Author : Sebastian Deorowicz and Agnieszka Danek
-// Version: 1.0
-// Date   : 2018-12-10
+// Version: 1.1
+// Date   : 2019-05-09
 // *******************************************************************************************
 
 #include "application.h"
@@ -290,8 +290,8 @@ bool CApplication::ExtractSample()
 				}
 
 //				variant_data += (uint8_t) (val[0] + (val[1] << 2));
-				variant_data += val[0];
-				variant_data += (uint8_t) (val[1] << 2);
+				variant_data += (uint8_t) val[0];
+				variant_data += (uint8_t) ((int) val[1] << 2);
 
 				v_vcf_data_compress.back().second.push_back(variant_data);
 			}
@@ -416,7 +416,7 @@ bool CApplication::CompressSample()
 	bool end_of_processing = false;
 	vector<run_desc_t> rle_genotypes;
 
-	if (!sfile->OpenForWriting(params.sample_file_name))
+	if (!sfile->OpenForWriting(params.sample_file_name, params.extra_variants))
 	{
 		cerr << "Cannot open: " << params.sample_file_name << endl;
 		return false;
@@ -439,6 +439,9 @@ bool CApplication::CompressSample()
 
 	string header, v_header;
 	vector<string> v_samples, cur_sample;
+
+	vector<uint8_t> v_ev_flags_compress, v_ev_flags_io;
+	vector<pair<variant_desc_t, vector<uint8_t>>> v_ev_desc;
 
 	cfile->GetHeader(header);
 	cfile->GetSamples(v_samples);
@@ -469,21 +472,92 @@ bool CApplication::CompressSample()
 	}
 	sample_pos_perm = sample_pos;
 
+	bool v_eof = false;
+	bool c_eof = false;
+
 	// Thread making rev-PBWT and estimating the position of sample to process
 	unique_ptr<thread> t_vcf(new thread([&] {
-		variant_desc_t desc;
+		variant_desc_t v_desc, c_desc;
 		vector<uint8_t> v_data;
 
 		while (!end_of_processing)
 		{
+			bool need_new_c_variant = true;
+			bool need_new_v_variant = true;
+
 			v_vcf_data_compress.clear();
+			v_ev_flags_compress.clear();
 
-			for (size_t i = 0; i < no_variants_in_buf && i_variant < no_variants; ++i, ++i_variant)
+			for (size_t i = 0; i < no_variants_in_buf && (!v_eof || !c_eof);)
 			{
-				cfile->GetVariantGenotypesRaw(rle_genotypes);
+				if (params.extra_variants)
+				{
+					if (need_new_c_variant)
+					{
+						if (i_variant < no_variants)
+						{
+							c_eof = !cfile->GetVariantGenotypesRawAndDesc(c_desc, rle_genotypes);
+							++i_variant;
+						}
+						else
+						{
+							c_desc.chrom.clear();
+							c_eof = true;
+						}
+					}
+				}
+				else
+				{
+					c_eof = !cfile->GetVariantGenotypesRaw(rle_genotypes);
+					++i_variant;
+				}
 
-				v_data.clear();
-				vfile->GetVariant(desc, v_data);
+				if (need_new_v_variant)
+				{
+					v_data.clear();
+					if (i < no_variants_in_buf)
+					{
+						v_eof = !vfile->GetVariant(v_desc, v_data);
+						++i;
+					}
+					else
+						v_eof = true;
+				}
+
+				if (c_eof && v_eof)
+				{
+					continue;
+				}
+			
+				if (params.extra_variants)
+				{
+					if (v_desc == c_desc)
+					{
+						need_new_c_variant = true;
+						need_new_v_variant = true;
+
+						v_ev_flags_compress.push_back(0);
+					}
+					else if (v_desc < c_desc)
+					{
+						need_new_c_variant = false;
+						need_new_v_variant = true;
+
+						v_ev_flags_compress.push_back(1);
+						v_ev_desc.push_back(make_pair(v_desc, v_data));
+
+						continue;
+					}
+					else
+					{
+						need_new_c_variant = true;
+						need_new_v_variant = false;
+
+						v_ev_flags_compress.push_back(2);
+
+						continue;
+					}
+				}
 
 				array<uint8_t, 2> a_sample;
 
@@ -540,7 +614,6 @@ bool CApplication::CompressSample()
 					}
 				}
 
-				// Docelowo ten bufor cykliczny mo¿na zrobiæ np. na array - powinno byæ szybciej, ale poki co sprawdzam czy sam pomysl jest dobry
 				d_hist_rle_genotypes.push_front(rle_genotypes);
 				d_hist_tracked_samples.push_front(a_sample);
 
@@ -560,6 +633,19 @@ bool CApplication::CompressSample()
 	unique_ptr<thread> t_io(new thread([&] {
 		while (!end_of_processing)
 		{
+			if (!v_sample_data_io.empty())
+			{
+				if (params.extra_variants)
+				{
+					for (size_t i = 0; i < v_ev_flags_io.size(); ++i)
+						sfile->PutFlag(v_ev_flags_io[i]);
+
+					sfile->PutFlag(3);		// end of flags
+				}
+
+				v_ev_flags_io.clear();
+			}
+
 			for (size_t i = 0; i < v_sample_data_io.size(); ++i)
 				sfile->Put(get<0>(v_sample_data_io[i]), get<1>(v_sample_data_io[i]), get<2>(v_sample_data_io[i]), get<3>(v_sample_data_io[i]));
 			v_sample_data_io.clear();
@@ -567,6 +653,8 @@ bool CApplication::CompressSample()
 			barrier.count_down_and_wait();
 			barrier.count_down_and_wait();
 		}
+
+		sfile->PutFlag(4);		// EOF
 	}));
 
 	// Synchronization
@@ -574,6 +662,8 @@ bool CApplication::CompressSample()
 	{
 		barrier.count_down_and_wait();
 		swap(v_sample_data_compress, v_sample_data_io);
+		swap(v_ev_flags_compress, v_ev_flags_io);
+
 		if (v_sample_data_io.empty())
 			end_of_processing = true;
 
@@ -582,10 +672,12 @@ bool CApplication::CompressSample()
 		barrier.count_down_and_wait();
 	}
 
+	// If necessary we need to encode extra variant descriptions
+	if (params.extra_variants)
+		sfile->WriteExtraVariants(v_ev_desc);
+
 	t_vcf->join();
 	t_io->join();
-
-	cout << endl;
 
 	return true;
 }
@@ -599,8 +691,14 @@ bool CApplication::DecompressSample()
 	unique_ptr<CVCF> vfile(new CVCF());
 	bool end_of_processing = false;
 	vector<pair<uint8_t, uint32_t>> rle_genotypes;
+	bool extra_variants;
 
-	if (!sfile->OpenForReading(params.sample_file_name))
+	if (!cfile->OpenForReading(params.db_file_name))
+		return false;
+
+	uint32_t ploidy = cfile->GetPloidy();
+
+	if (!sfile->OpenForReading(params.sample_file_name, extra_variants))
 	{
 		cerr << "Cannot open: " << params.sample_file_name << endl;
 		return false;
@@ -611,9 +709,6 @@ bool CApplication::DecompressSample()
 		cerr << "Cannot open: " << params.vcf_file_name << endl;
 		return false;
 	}
-
-	if (!cfile->OpenForReading(params.db_file_name))
-		return false;
 
 	cfile->InitPBWT();
 	params.neglect_limit = cfile->GetNeglectLimit();
@@ -636,11 +731,16 @@ bool CApplication::DecompressSample()
 	vfile->AddSample(params.id_sample);
 	vfile->WriteHeader();
 
-	uint32_t ploidy = cfile->GetPloidy();
 	array<uint32_t, 2> sample_pos;
 	array<uint32_t, 2> sample_pos_perm;
 	uint32_t no_pred_same[2] = { 0, 0 };
 	uint32_t no_succ_same[2] = { 0, 0 };
+
+	vector<uint8_t> v_ev_flags_compress, v_ev_flags_io;
+	vector<pair<variant_desc_t, vector<uint8_t>>> v_ev_desc;
+
+	sfile->ReadExtraVariants(v_ev_desc);
+	int ev_pos = 0;
 
 	if (ploidy == 1)
 		sample_pos[0] = (uint32_t)v_samples.size();
@@ -658,13 +758,107 @@ bool CApplication::DecompressSample()
 		variant_desc_t desc;
 		array<uint8_t, 2> a_sample;
 
+		bool c_eof = false;
+		int f_pos;
+
 		while (!end_of_processing)
 		{
+			barrier.count_down_and_wait();
+
+			bool need_new_c_variant = true;
+			bool need_new_v_variant = true;
+			bool v_eof = false;
+
+			v_ev_flags_io.clear();
+
+			if (extra_variants)
+			{
+				uint8_t ev_flag;
+				while (true)
+				{
+					sfile->GetFlag(ev_flag);
+					if (ev_flag >= 3)
+						break;
+					v_ev_flags_io.push_back(ev_flag);
+				}
+				f_pos = 0;
+
+				if (ev_flag == 4)
+				{
+					end_of_processing = true;
+					barrier.count_down_and_wait();
+					barrier.count_down_and_wait();
+					continue;
+				}
+
+				if (v_ev_flags_io.empty())
+				{
+					barrier.count_down_and_wait();
+					barrier.count_down_and_wait();
+					continue;
+				}
+			}
+
 			v_sample_d_data_compress.clear();
 
-			for (size_t i = 0; i < no_variants_in_buf && i_variant < no_variants; ++i, ++i_variant)
+			for (size_t i = 0; i < no_variants_in_buf && (!c_eof || !v_eof);)
 			{
-				cfile->GetVariantGenotypesRawAndDesc(desc, rle_genotypes);
+				if (!extra_variants)
+				{
+					need_new_c_variant = true;
+					need_new_v_variant = true;
+
+					c_eof = v_eof = i_variant >= no_variants;
+				}
+				else
+				{
+					if (v_ev_flags_io[f_pos] == 0)
+					{
+						need_new_c_variant = true;
+						need_new_v_variant = true;
+					}
+					else if (v_ev_flags_io[f_pos] == 1)
+					{
+						need_new_c_variant = false;
+						need_new_v_variant = true;
+					}
+					else if (v_ev_flags_io[f_pos] == 2)
+					{
+						need_new_c_variant = true;
+						need_new_v_variant = false;
+					}
+					else
+					{
+						v_eof = true;
+						need_new_c_variant = false;
+						need_new_v_variant = false;
+					}
+					++f_pos;
+
+					if (f_pos == v_ev_flags_io.size())
+						v_eof = true;
+				}
+
+				if (need_new_c_variant)
+				{
+					c_eof = !cfile->GetVariantGenotypesRawAndDesc(desc, rle_genotypes);
+					++i_variant;
+				}
+
+				if (!need_new_c_variant && need_new_v_variant)
+				{
+					v_sample_d_data_compress.push_back(make_pair(v_ev_desc[ev_pos].first, v_ev_desc[ev_pos].second[0]));
+					++ev_pos;
+					++i;
+					continue;
+				}
+
+				if (v_eof && c_eof)
+					continue;
+
+				if (!need_new_v_variant)
+					continue;
+				++i;
 
 				uint8_t value = ploidy == 2 ? 0b00010000 : 0;		// Data phased
 
@@ -677,16 +871,6 @@ bool CApplication::DecompressSample()
 					cfile->EstimateValue(rle_genotypes, sample_pos_perm[j], 0, runs, tmp);
 					sfile->Get(v, runs, no_pred_same[j], no_succ_same[j]);
 					cfile->EstimateValue(rle_genotypes, sample_pos_perm[j], v, runs, sample_pos_perm[j]);
-
-/*					if (runs[0].first == v)
-						no_pred_same[j]++;
-					else
-						no_pred_same[j] = 0;
-
-					if (runs[1].first == v)
-						no_succ_same[j]++;
-					else
-						no_succ_same[j] = 0;*/
 
 					if (runs[0].first == v)
 						no_pred_same[j] = min<size_t>(no_pred_same[j] + 1, max_tracked_dist);
@@ -735,7 +919,6 @@ bool CApplication::DecompressSample()
 				}
 				v_sample_d_data_compress.push_back(make_pair(desc, value));
 
-				// Docelowo ten bufor cykliczny mo¿na zrobiæ np. na array - powinno byæ szybciej, ale poki co sprawdzam czy sam pomysl jest dobry
 				d_hist_rle_genotypes.push_front(rle_genotypes);
 				d_hist_tracked_samples.push_front(a_sample);
 
@@ -755,6 +938,7 @@ bool CApplication::DecompressSample()
 	unique_ptr<thread> t_io(new thread([&] {
 		while (!end_of_processing)
 		{
+			barrier.count_down_and_wait();
 			vector<uint8_t> variants(1);
 
 			for (size_t i = 0; i < v_sample_d_data_io.size(); ++i)
@@ -773,6 +957,7 @@ bool CApplication::DecompressSample()
 	// Synchronization
 	while (!end_of_processing)
 	{
+		barrier.count_down_and_wait();
 		barrier.count_down_and_wait();
 		swap(v_sample_d_data_compress, v_sample_d_data_io);
 		if (v_sample_d_data_io.empty())

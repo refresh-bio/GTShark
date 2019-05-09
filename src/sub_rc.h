@@ -5,8 +5,8 @@
 // The homepage of the GTShark project is https://github.com/refresh-bio/GTShark
 //
 // Author : Sebastian Deorowicz and Agnieszka Danek
-// Version: 1.0
-// Date   : 2018-12-10
+// Version: 1.1
+// Date   : 2019-05-09
 //
 // This file is adopted from 'Carryless rangecoder' by Dmitry Subbotin and 
 // FaStore (https://github.com/refresh-bio/FaStore) by 

@@ -4,8 +4,8 @@
 // The homepage of the GTShark project is https://github.com/refresh-bio/GTShark
 //
 // Author : Sebastian Deorowicz and Agnieszka Danek
-// Version: 1.0
-// Date   : 2018-12-10
+// Version: 1.1
+// Date   : 2019-05-09
 // *******************************************************************************************
 
 #include <vector>
@@ -28,6 +28,7 @@ struct CParams
     
     file_type out_type;
     char bcf_compression_level;
+	bool extra_variants;
 
 	// internal params
 	uint32_t neglect_limit;
@@ -42,6 +43,7 @@ struct CParams
         
         out_type = file_type::VCF;
         bcf_compression_level = '1';
+		extra_variants = false;
 
 		// internal params
 		neglect_limit = 10;
@@ -49,10 +51,10 @@ struct CParams
 
 	void store_params(vector<uint8_t> &v_params)
 	{
-		v_params.push_back('T');
 		v_params.push_back('G');
-		v_params.push_back('C');
-		v_params.push_back('2');
+		v_params.push_back('T');
+		v_params.push_back('S');
+		v_params.push_back('1');
 
 		v_params.push_back((uint8_t)neglect_limit);
 	}
@@ -64,10 +66,10 @@ struct CParams
 		if (v_params.size() != 5)
 			return false;
 
-		if (v_params[i++] != 'T')	return false;
 		if (v_params[i++] != 'G')	return false;
-		if (v_params[i++] != 'C')	return false;
-		if (v_params[i++] != '2')	return false;
+		if (v_params[i++] != 'T')	return false;
+		if (v_params[i++] != 'S')	return false;
+		if (v_params[i++] != '1')	return false;
 
 		neglect_limit = v_params[i++];
 

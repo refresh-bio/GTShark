@@ -3,8 +3,8 @@
 // The homepage of the GTShark project is https://github.com/refresh-bio/GTShark
 //
 // Author : Sebastian Deorowicz and Agnieszka Danek
-// Version: 1.0
-// Date   : 2018-12-10
+// Version: 1.1
+// Date   : 2019-05-09
 // *******************************************************************************************
 
 #include "utils.h"
@@ -12,8 +12,6 @@
 #include <memory>
 #include <sstream>
 #include <algorithm>
-
-//#include <popcntintrin.h>
 
 #ifdef OUR_STRTOL
 // *****************************************************************************************
@@ -49,7 +47,7 @@ long int strtol(const char* str, char** endptr, int base) noexcept
 // ************************************************************************************
 void cumulate_sums(vector<uint32_t> &v_hist, uint32_t &max_count)
 {
-	// Wyznacza histogram skumulowany
+	// Determine cumulated histogram
 	uint32_t v = 0;
 	uint32_t cum = 0;
 	uint32_t hist_size = (uint32_t) v_hist.size();
@@ -69,7 +67,7 @@ void cumulate_sums(vector<uint32_t> &v_hist, uint32_t &max_count)
 // ************************************************************************************
 void cumulate_sums(array<uint32_t, SIGMA> &a_hist, uint32_t &max_count)
 {
-	// Wyznacza histogram skumulowany
+	// Determine cumulated histogram
 	uint32_t v = 0;
 	uint32_t cum = 0;
 	uint32_t hist_size = (uint32_t)a_hist.size();
