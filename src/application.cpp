@@ -759,7 +759,7 @@ bool CApplication::DecompressSample()
 		array<uint8_t, 2> a_sample;
 
 		bool c_eof = false;
-		int f_pos;
+		uint32_t f_pos = 0;
 
 		while (!end_of_processing)
 		{
