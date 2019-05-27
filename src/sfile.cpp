@@ -253,8 +253,6 @@ uint32_t CSampleFile::WriteExtraVariants(const vector<pair<variant_desc_t, vecto
 		return 1;
 	}
 
-	uint32_t no_ev = (uint32_t)v_desc.size();
-
 	vector<uint8_t> vr_chrom, vc_chrom;
 	vector<uint8_t> vr_pos, vc_pos;
 	vector<uint8_t> vr_id, vc_id;
