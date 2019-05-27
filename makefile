@@ -9,7 +9,7 @@ HTS_LIB_DIR=htslib/lib
 
 CC 	= g++
 CFLAGS	= -Wall -O3 -m64 -std=c++11 -pthread -mavx -I $(HTS_INCLUDE_DIR) -I $(INCLUDE_DIR) -fpermissive
-CLINK	= -lm -O3 -std=c++11 -pthread -mavx  -lhts -llzma -L $(HTS_LIB_DIR) -L $(LIBS_DIR)
+CLINK	= -lm -O3 -std=c++11 -pthread -mavx -lz -lbz2 -lcurl  -llzma -L $(LIBS_DIR)
 
 ifdef MSVC     # Avoid the MingW/Cygwin sections
     uname_S := Windows
@@ -47,6 +47,7 @@ gtshark: $(GTShark_MAIN_DIR)/application.o \
 	$(GTShark_MAIN_DIR)/sfile.o \
 	$(GTShark_MAIN_DIR)/utils.o \
 	$(GTShark_MAIN_DIR)/vcf.o \
+	$(HTS_LIB_DIR)/libhts.a \
 	$(CLINK)
 
 clean:
