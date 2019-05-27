@@ -1,0 +1,17 @@
+FROM centos:7
+
+RUN  yum -y update  && yum -y upgrade &&\ 
+yum -y install make  gcc gcc-c++ git wget libcurl-devel zlib-devel bzip2  bzip2-devel xz-devel 
+
+	
+RUN mkdir -p /home/gtshark 
+	
+WORKDIR /home/gtshark
+
+RUN git clone https://github.com/refresh-bio/GTShark.git
+
+WORKDIR /home/gtshark/GTShark
+
+RUN ./install.sh
+
+RUN make
