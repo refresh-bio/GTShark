@@ -166,7 +166,7 @@ For more options see Usage section.
 
 Dockerfile
 --------------
-Dockerfile can be used to build a Docker image with all necessary dependencies and GTC compressor. 
+Dockerfile can be used to build a Docker image with all necessary dependencies and GTShark compressor. 
 
 The first image is based on Ubuntu 16.04 (Dockerfile_ubuntu), the second one on CentOS 7 (Dockerfile_centos). 
 
@@ -183,7 +183,7 @@ docker build -f Dockerfile_centos -t centos-gtshark .
 docker run -it centos-gtshark
 ```
 
-Note: The Docker image is not intended as a way of using GTC. It can be used to test the instalation process and basic operation of the GTC tool.
+Note: The Docker image is not intended as a way of using GTShark. It can be used to test the instalation process and basic operation of the GTShark tool.
 
 
 
