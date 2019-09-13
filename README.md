@@ -168,7 +168,7 @@ Dockerfile
 --------------
 Dockerfile can be used to build a Docker image with all necessary dependencies and GTShark compressor. 
 
-The first image is based on Ubuntu 16.04 (Dockerfile_ubuntu), the second one on CentOS 7 (Dockerfile_centos). 
+The first image is based on Ubuntu 18.04 (Dockerfile_ubuntu), the second one on CentOS 7 (Dockerfile_centos). 
 
 To build a Docker image and run a Docker container, you need Docker Desktop (https://www.docker.com). 
 
