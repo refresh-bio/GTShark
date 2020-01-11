@@ -194,6 +194,6 @@ The implementation is by Sebastian Deorowicz and Agnieszka Danek.
 
 Publication
 --------------
-
-<!--- Danek, A., Deorowicz, S., GTC: an attempt to maintenance of huge genome collections compressed, [bioRxiv](http://biorxiv.org/content/early/2017/04/28/131649), 2017; --->
+Deorowicz, S., Danek, A., GTShark: Genotype compression in large project, 
+[Bioinformatics](https://doi.org/10.1093/bioinformatics/btz508), 2019; 35(22):4791–4793.
 
