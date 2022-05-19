@@ -189,11 +189,10 @@ Note: The Docker image is not intended as a way of using GTShark. It can be used
 
 Developers
 --------------
-The GTShark algorithm was invented by [Sebastian Deorowicz](https://github.com/sebastiandeorowicz) and [Agnieszka Danek](https://github.com/agnieszkadanek).
-The implementation is by Sebastian Deorowicz and Agnieszka Danek.
+The GTShark algorithm was invented and implemented by Sebastian Deorowicz and Agnieszka Danek.
 
-Publication
+Citing
 --------------
-Deorowicz, S., Danek, A., GTShark: Genotype compression in large project, 
-[Bioinformatics](https://doi.org/10.1093/bioinformatics/btz508), 2019; 35(22):4791–4793.
+[Deorowicz, S., Danek, A., (2019) GTShark: Genotype compression in large project, 
+Bioinformatics, 35(22):4791&ndash;4793.](https://doi.org/10.1093/bioinformatics/btz508)
 
