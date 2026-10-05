@@ -1,5 +1,7 @@
 # GTShark: Genotype compression in large projects
 
+[![Bioinformatics 10.1093/bioinformatics/btz508](https://img.shields.io/badge/Bioinformatics%202019-10.1093%2Fbioinformatics%2Fbtz508-blue)](https://doi.org/10.1093/bioinformatics/btz508)
+
 GTShark is a tool to compress large databases with genotype data. It also allows to use a compressed database of genotypes as a knowledgebase for compression of new samples. As an input it takes the VCF file. 
 
 Version 1.1: Support for missing/extra variants in new samples compressed in reference to a compressed database (with ```-ev``` flag).
